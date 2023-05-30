@@ -8,6 +8,7 @@
 #define HEADER_BIT_DEPTH_OFFSET     28
 #define RGB_CHANNEL_SIZE            3
 
+#include <stdint.h>
 
 
 /*===============================================*/
@@ -18,9 +19,9 @@ typedef struct{
     int ImageHeight;
     int BitDepth;
     int FromRGB;
-    unsigned char ImageHeader[IMAGE_HEADER_SIZE];
-    unsigned char ColorTable[IMAGE_COLOR_TABLE_SIZE];
-    unsigned char* ImageBuffer;
+    uint8_t ImageHeader[IMAGE_HEADER_SIZE];
+    uint8_t ColorTable[IMAGE_COLOR_TABLE_SIZE];
+    uint8_t* ImageBuffer;
 } GreyScale_ImageHandler_t;
 
 typedef GreyScale_ImageHandler_t* ImageHandler_Ptr;
@@ -48,9 +49,9 @@ typedef struct{
     int ImageWidth;
     int ImageHeight;
     int BitDepth;
-    unsigned char ImageHeader[IMAGE_HEADER_SIZE];
-    unsigned char ColorTable[IMAGE_COLOR_TABLE_SIZE];
-    unsigned char ** ImageBuffer;
+    uint8_t ImageHeader[IMAGE_HEADER_SIZE];
+    uint8_t ColorTable[IMAGE_COLOR_TABLE_SIZE];
+    uint8_t ** ImageBuffer;
 } RGB_ImageHandler_t;
 
 typedef RGB_ImageHandler_t* RGB_ImageHandler_Ptr;
@@ -73,9 +74,9 @@ typedef struct{
     int ImageHeight;
     int BitDepth;
     int FromRGB;
-    unsigned char ImageHeader[IMAGE_HEADER_SIZE];
-    unsigned char ColorTable[IMAGE_COLOR_TABLE_SIZE];
-    unsigned char * ImageBuffer;
+    uint8_t ImageHeader[IMAGE_HEADER_SIZE];
+    uint8_t ColorTable[IMAGE_COLOR_TABLE_SIZE];
+    uint8_t * ImageBuffer;
 } Binary_ImageHandler_t;
 typedef Binary_ImageHandler_t* Binary_ImageHandler_Ptr;
 

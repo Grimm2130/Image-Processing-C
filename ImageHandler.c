@@ -28,10 +28,10 @@ static char* Set_File_Path(char* a, char* b){
 }
 
 
-static unsigned char** Set_RGB_Buffer_Mem(const int size){
-    unsigned char **ret = (unsigned char**) calloc(RGB_CHANNEL_SIZE, sizeof(unsigned char*));
+static uint8_t** Set_RGB_Buffer_Mem(const int size){
+    uint8_t **ret = (uint8_t**) calloc(RGB_CHANNEL_SIZE, sizeof(uint8_t*));
     for(int i = 0; i < RGB_CHANNEL_SIZE; i++){
-        ret[i] = (unsigned char*) calloc(size, sizeof(unsigned char));
+        ret[i] = (uint8_t*) calloc(size, sizeof(uint8_t));
     }
     return ret;
 }
@@ -76,10 +76,10 @@ GreyScale_ImageHandler_t GreyScale_Image_Handler_Read_Image(char* ImageName, cha
 
     // Set image buffer size
     const int buffer_size = anImage.ImageHeight*anImage.ImageHeight;
-    anImage.ImageBuffer = (unsigned char*) calloc(buffer_size, sizeof(unsigned char));
+    anImage.ImageBuffer = (uint8_t*) calloc(buffer_size, sizeof(uint8_t));
     // Check for a color table
     if(anImage.BitDepth <= 8){
-        fread(anImage.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fread(anImage.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
     else{
         memset(anImage.ColorTable, '\0', IMAGE_COLOR_TABLE_SIZE);
@@ -87,7 +87,7 @@ GreyScale_ImageHandler_t GreyScale_Image_Handler_Read_Image(char* ImageName, cha
     }
 
     // Read in the image pixels to the buffer
-    fread(anImage.ImageBuffer, sizeof(unsigned char), buffer_size, fp);
+    fread(anImage.ImageBuffer, sizeof(uint8_t), buffer_size, fp);
 
     // Close files and return image
     fclose(fp);
@@ -117,11 +117,11 @@ void GreyScale_Image_Handler_Write_Image(GreyScale_ImageHandler_t anImage, char*
     FILE* fp = fopen(path, "wb+");
 
     // Write the header file
-    fwrite(anImage.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fwrite(anImage.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
 
     // Write the Color table if it exists
     if(anImage.BitDepth <= 8){
-        fwrite(anImage.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fwrite(anImage.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     // Write the buffer contents
@@ -131,7 +131,7 @@ void GreyScale_Image_Handler_Write_Image(GreyScale_ImageHandler_t anImage, char*
         size *= 3;
     }
 
-    fwrite(anImage.ImageBuffer, sizeof(unsigned char), size, fp);
+    fwrite(anImage.ImageBuffer, sizeof(uint8_t), size, fp);
 
     fclose(fp);
 
@@ -159,7 +159,7 @@ RGB_ImageHandler_t RGB_Image_Handler_Read_Image(char* ImageName, char* ImagePath
     FILE* fp = fopen(path, "rb");
 
     // Read in image header
-    fread(anImage.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fread(anImage.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
 
     // Set image params
     anImage.ImageWidth = *(int*)&anImage.ImageHeader[HEADER_IMAGE_HEIGHT_OFFSET];
@@ -167,7 +167,7 @@ RGB_ImageHandler_t RGB_Image_Handler_Read_Image(char* ImageName, char* ImagePath
     anImage.BitDepth = *(int*)&anImage.ImageHeader[HEADER_BIT_DEPTH_OFFSET];
 
     if(anImage.BitDepth <= 8){
-        fread(anImage.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fread(anImage.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     const int size =  anImage.ImageWidth*anImage.ImageHeight;
@@ -202,11 +202,11 @@ void RGB_Image_Handler_Write_Image(RGB_ImageHandler_t anImage, char* ImageName, 
     FILE* fp = fopen(path, "wb");
 
     // Write header
-    fwrite(anImage.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fwrite(anImage.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
 
     // Write color table if available
     if(anImage.BitDepth <= 8){
-        fwrite(anImage.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fwrite(anImage.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     int size = anImage.ImageHeight*anImage.ImageWidth;
@@ -254,7 +254,7 @@ Binary_ImageHandler_t Binary_Image_Handler_Read_Image_From_Greyscale(char* Image
     }
 
     // Read in the header
-    fread(bin_image.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fread(bin_image.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
     bin_image.FromRGB = 0;
     bin_image.ImageWidth = *(int*)&bin_image.ImageHeader[HEADER_IMAGE_WIDTH_OFFSET];
     bin_image.ImageHeight = *(int*)&bin_image.ImageHeader[HEADER_IMAGE_HEIGHT_OFFSET];
@@ -262,12 +262,12 @@ Binary_ImageHandler_t Binary_Image_Handler_Read_Image_From_Greyscale(char* Image
 
     // Set color table if exists
     if(bin_image.BitDepth <= 8){
-        fread(bin_image.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fread(bin_image.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     // Read in the buffer
     int size = bin_image.ImageHeight * bin_image.ImageWidth;
-    bin_image.ImageBuffer = (unsigned char*) calloc(size, sizeof(unsigned char));
+    bin_image.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
 
     for(int i = 0; i < size; i++){
         int pix_val = getc(fp);
@@ -304,7 +304,7 @@ Binary_ImageHandler_t Binary_Image_Handler_Read_Image_From_RGB(char* ImageName, 
     }
 
     // Read in the header
-    fread(bin_image.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fread(bin_image.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
     bin_image.FromRGB = 1;
     bin_image.ImageWidth = *(int*)&bin_image.ImageHeader[HEADER_IMAGE_WIDTH_OFFSET];
     bin_image.ImageHeight = *(int*)&bin_image.ImageHeader[HEADER_IMAGE_HEIGHT_OFFSET];
@@ -312,22 +312,17 @@ Binary_ImageHandler_t Binary_Image_Handler_Read_Image_From_RGB(char* ImageName, 
 
     // Set color table if exists
     if(bin_image.BitDepth <= 8){
-        fread(bin_image.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fread(bin_image.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     // Read in the buffer
     int size = bin_image.ImageHeight * bin_image.ImageWidth*3;
-    bin_image.ImageBuffer = (unsigned char*) calloc(size, sizeof(unsigned char));
+    bin_image.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
 
-    int pix_val = 0;
+    uint16_t pix_val = 0;
 
     for(int i = 0; i < size; i+=3){
-        int red = getc(fp);
-        int green =  getc(fp);
-        int blue = getc(fp);
-        pix_val =   ((red * Rgb_to_Bin_conv_floats[RED]) +
-                    (green * Rgb_to_Bin_conv_floats[GREEN]) +
-                    (blue * Rgb_to_Bin_conv_floats[BLUE]));
+        pix_val =  getc(fp) + getc(fp) + getc(fp);       
         pix_val/=3;
         pix_val = pix_val < bin_image.image_thres ? 0 : 255;
         bin_image.ImageBuffer[i] = pix_val;
@@ -355,11 +350,11 @@ void Binary_Image_Handler_Write_Image(Binary_ImageHandler_t anImage, char* Image
     FILE* fp = fopen(path, "wb+");
 
     // Write in the header
-    fwrite(anImage.ImageHeader, sizeof(unsigned char), IMAGE_HEADER_SIZE, fp);
+    fwrite(anImage.ImageHeader, sizeof(uint8_t), IMAGE_HEADER_SIZE, fp);
 
     // Set color table if exists
     if(anImage.BitDepth <= 8){
-        fwrite(anImage.ColorTable, sizeof(unsigned char), IMAGE_COLOR_TABLE_SIZE, fp);
+        fwrite(anImage.ColorTable, sizeof(uint8_t), IMAGE_COLOR_TABLE_SIZE, fp);
     }
 
     // Write in the buffer
@@ -369,7 +364,7 @@ void Binary_Image_Handler_Write_Image(Binary_ImageHandler_t anImage, char* Image
         size*=3;
     }
     
-    fwrite(anImage.ImageBuffer, sizeof(unsigned char), size, fp);
+    fwrite(anImage.ImageBuffer, sizeof(uint8_t), size, fp);
 
     if(got_path){
         free(path);
@@ -395,7 +390,7 @@ GreyScale_ImageHandler_t Image_Convt_RGB_to_GreyScale(RGB_ImageHandler_t rgb_ima
     GreyScale_ImageHandler_t anImage = {0};
 
     // Copy the image header
-    memcpy(anImage.ImageHeader, rgb_image.ImageHeader, IMAGE_HEADER_SIZE*sizeof(unsigned char));
+    memcpy(anImage.ImageHeader, rgb_image.ImageHeader, IMAGE_HEADER_SIZE*sizeof(uint8_t));
 
     // Set the image features
     anImage.FromRGB = 1;
@@ -404,20 +399,20 @@ GreyScale_ImageHandler_t Image_Convt_RGB_to_GreyScale(RGB_ImageHandler_t rgb_ima
     anImage.BitDepth = rgb_image.BitDepth;
 
     if(anImage.BitDepth <= 8)
-        memcpy(anImage.ColorTable, rgb_image.ColorTable, IMAGE_COLOR_TABLE_SIZE*sizeof(unsigned char));
+        memcpy(anImage.ColorTable, rgb_image.ColorTable, IMAGE_COLOR_TABLE_SIZE*sizeof(uint8_t));
 
 
     int size = anImage.ImageWidth*anImage.ImageHeight*3;
 
-    anImage.ImageBuffer = (unsigned char*) calloc(size, sizeof(unsigned char));
+    anImage.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
 
     // #TODO: Make the copying process actually work
-    unsigned char temp = '\0';
+    uint8_t temp = '\0';
     int true_size = rgb_image.ImageHeight*rgb_image.ImageWidth;
 
     for(int i = 0, j = 0; i < true_size && j < size; i++, j+=3){
 
-        temp = (unsigned char) ((rgb_image.ImageBuffer[RED][i] * Rgb_to_Bin_conv_floats[RED]) +
+        temp = (uint8_t) ((rgb_image.ImageBuffer[RED][i] * Rgb_to_Bin_conv_floats[RED]) +
                                 (rgb_image.ImageBuffer[GREEN][i] * Rgb_to_Bin_conv_floats[GREEN]) +
                                 (rgb_image.ImageBuffer[BLUE][i] * Rgb_to_Bin_conv_floats[BLUE]));
         
@@ -434,7 +429,7 @@ Binary_ImageHandler_t Image_Convt_RGB_to_Binary(RGB_ImageHandler_t rgb_image, in
     Binary_ImageHandler_t anImage = {0};
 
     // Copy the image header
-    memcpy(anImage.ImageHeader, rgb_image.ImageHeader, IMAGE_HEADER_SIZE*sizeof(unsigned char));
+    memcpy(anImage.ImageHeader, rgb_image.ImageHeader, IMAGE_HEADER_SIZE*sizeof(uint8_t));
 
     // Set the image features
     anImage.image_thres = thres;
@@ -444,21 +439,21 @@ Binary_ImageHandler_t Image_Convt_RGB_to_Binary(RGB_ImageHandler_t rgb_image, in
     anImage.BitDepth = rgb_image.BitDepth;
 
     if(anImage.BitDepth <= 8)
-        memcpy(anImage.ColorTable, rgb_image.ColorTable, IMAGE_COLOR_TABLE_SIZE*sizeof(unsigned char));
+        memcpy(anImage.ColorTable, rgb_image.ColorTable, IMAGE_COLOR_TABLE_SIZE*sizeof(uint8_t));
 
 
     int size = anImage.ImageWidth*anImage.ImageHeight*3;
-    anImage.ImageBuffer = (unsigned char*) calloc(size, sizeof(unsigned char));
+    anImage.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
 
-    int temp = 0;
+    uint16_t temp = 0;
     // #TODO: Make the copying process actually work
     int true_size = rgb_image.ImageHeight*rgb_image.ImageWidth;
 
     for(int i = 0, j = 0; i < true_size && j < size; i++, j+=3){
-        temp =  ((rgb_image.ImageBuffer[RED][i] * Rgb_to_Bin_conv_floats[RED]) +
-                (rgb_image.ImageBuffer[GREEN][i] * Rgb_to_Bin_conv_floats[GREEN]) +
-                (rgb_image.ImageBuffer[BLUE][i] * Rgb_to_Bin_conv_floats[BLUE]));
-
+        temp =  rgb_image.ImageBuffer[RED][i] +
+                rgb_image.ImageBuffer[GREEN][i] +
+                rgb_image.ImageBuffer[BLUE][i];
+        temp/=3;
         // threshold picture
         temp = temp < thres ? 0 : 255;
 
