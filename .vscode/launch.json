@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ImageProcessing",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/chimaochiagha/ImageProcessing",
+      "program": "/Users/chimaochiagha/ImageProcessing/main"
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/chimaochiagha/ImageProcessing",
+      "program": "/Users/chimaochiagha/ImageProcessing/build/Debug/outDebug"
+    }
+  ]
+}
