@@ -1,8 +1,9 @@
-#include "ImageHandler.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+#include "Utils.h"
+#include "ImageHandler.h"
 
 
 
@@ -463,4 +464,293 @@ Binary_ImageHandler_t Image_Convt_RGB_to_Binary(RGB_ImageHandler_t rgb_image, in
     }
 
     return anImage;
+}
+
+
+/*======================================================================================*/
+/*================================= Arithmetic Functions ===============================*/
+/*======================================================================================*/
+
+GreyScale_ImageHandler_t Greyscale_Brighten_Image_Saturation(GreyScale_ImageHandler_t image, uint8_t offset){
+     GreyScale_ImageHandler_t bright_image = {0};
+     
+     // Copy feature parameters
+     bright_image.BitDepth = image.BitDepth;
+     bright_image.FromRGB = image.FromRGB;
+     bright_image.ImageHeight = image.ImageHeight;
+     bright_image.ImageWidth = image.ImageWidth;
+     
+     // Copy image header
+     for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        bright_image.ImageHeader[i] = image.ImageHeader[i];
+     }
+    
+    // Copy color table
+    if(bright_image.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            bright_image.ColorTable[i] = image.ColorTable[i];
+        }
+    }
+
+    // Copy buffer
+
+    int size = bright_image.ImageHeight*bright_image.ImageWidth;
+
+    if(bright_image.FromRGB){
+        size*=3;
+    }
+
+    bright_image.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
+
+    uint16_t temp = 0;
+    for(int i = 0; i < size; i++){
+        temp = image.ImageBuffer[i] + offset;
+        temp = temp > MAX_PIXEL_VAL ? MAX_PIXEL_VAL : temp;
+         bright_image.ImageBuffer[i] = 0xFF & temp;
+    }
+
+    return bright_image;
+}
+
+
+GreyScale_ImageHandler_t Greyscale_Darken_Image_Saturation(GreyScale_ImageHandler_t image, uint8_t offset){
+    GreyScale_ImageHandler_t dark_image;
+    
+    // Copy feature parameters
+     dark_image.BitDepth = image.BitDepth;
+     dark_image.FromRGB = image.FromRGB;
+     dark_image.ImageHeight = image.ImageHeight;
+     dark_image.ImageWidth = image.ImageWidth;
+     
+     // Copy image header
+     for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        dark_image.ImageHeader[i] = image.ImageHeader[i];
+     }
+    
+    // Copy color table
+    if(dark_image.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            dark_image.ColorTable[i] = image.ColorTable[i];
+        }
+    }
+
+    // Copy buffer
+
+    int size = dark_image.ImageHeight*dark_image.ImageWidth;
+
+    if(dark_image.FromRGB){
+        size*=3;
+    }
+
+    dark_image.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
+
+    int16_t temp = 0;
+    for(int i = 0; i < size; i++){
+        temp = image.ImageBuffer[i] - offset;
+        temp = temp < MIN_PIXEL_VAL ? MIN_PIXEL_VAL : temp;
+        dark_image.ImageBuffer[i] = 0xFF & temp;
+    }
+
+    return dark_image;
+}
+
+
+/*======================================================================================*/
+/*======================= Image Histogram Operation Functions ==========================*/
+/*======================================================================================*/
+
+/**
+ * @brief           Function to compute the histogram of an image
+ * 
+ * @param img       Grey Scale Image handler
+ * @return float* 
+ */
+float* Image_Handler_Compute_Histogram(GreyScale_ImageHandler_t img){
+    int size = img.ImageHeight*img.ImageWidth;
+
+    if(img.FromRGB)
+        size *= 3;
+
+    float* Hist = (float*) calloc(MAX_PIXEL_VAL+1, sizeof(float));
+
+    // Compute the frequency of the images
+    for(int i = 0; i < size; i++){
+        Hist[img.ImageBuffer[i]]++;
+    }
+
+    return Hist;
+}
+
+
+float* Image_Handler_Compute_Equalized_Histogram(float* hist, int size){
+    float *Equalized_Hist = (float*) calloc(size, sizeof(float));
+    float sum = 0.0;
+    for(int i = 0; i < size; i++){
+        sum = 0.0;
+        // Compute sum of preceding pixels inclusive of current
+        for(int j = 0; j <= i; j++){
+            sum += hist[j];
+        }
+        Equalized_Hist[i] = (255.0*sum)+0.5;
+    }
+    return Equalized_Hist;
+}
+
+
+GreyScale_ImageHandler_t  Image_Handler_Equalize_Image_Pixels(GreyScale_ImageHandler_Ptr img_p){
+
+    GreyScale_ImageHandler_t equalized_img = {0};
+    equalized_img.BitDepth = img_p->BitDepth;
+    equalized_img.FromRGB = img_p->FromRGB;
+    equalized_img.ImageHeight = img_p->ImageHeight;
+    equalized_img.ImageWidth = img_p->ImageWidth;
+
+    // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        equalized_img.ImageHeader[i] = img_p->ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(equalized_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            equalized_img.ColorTable[i] = img_p->ColorTable[i];
+        }
+    }
+
+    // Compute image histogram
+    float* hist = Image_Handler_Compute_Histogram(*img_p);
+    
+    // get Size of buffer/Num. of pixels
+    int size = equalized_img.ImageHeight*equalized_img.ImageWidth;
+
+    if(equalized_img.FromRGB){
+        size*=3;
+    }
+
+    // Normalize Histogram
+    NormalizeFloatArr(&hist, MAX_PIXEL_VAL+1, size);
+
+    // Compute Equlized values of histogram
+    float* hist_eq = Image_Handler_Compute_Equalized_Histogram(hist, MAX_PIXEL_VAL+1);
+
+    // Set the values in the image buffer
+    equalized_img.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
+    int temp = 0,
+        pix_val = 0;
+    for(int i = 0; i < size; i++){
+        pix_val = img_p->ImageBuffer[i];
+        // Get normalized pixel value
+        temp = (int) hist_eq[pix_val];
+        // Extract and set in equalized Image buffer
+        equalized_img.ImageBuffer[i] = 0xFF & temp;
+    }
+
+    return equalized_img;
+}
+
+
+
+/*======================================================================================*/
+/*======================= Image Rotation Operation Functions ==========================*/
+/*======================================================================================*/
+
+GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Right(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img = {0};
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // set buffer size
+    int height = img.ImageHeight,
+        width = img.ImageWidth;
+    
+    
+
+
+    // Copy back into the image buffer
+    
+    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
+
+    //  for(int i = 0; i < height; i++){
+    //     for(int j = 0; j < width; j++){
+    //         new_img.ImageBuffer[j + (i * width)] = copy_buff[i][j];
+    //     }
+    // }
+
+    // Copy the buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[(height - 1 - i) + (j * width)] ;
+        }
+    }
+
+    return new_img;
+}
+
+/**
+ * @brief           Function to rotate an image left
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Left(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // set buffer size
+    int height = img.ImageHeight,
+        width = img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
+
+    // Copy the buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[i + ((width-1-j) * width)];
+        }
+    }
+
+
+    return new_img;
+}
+
+
+GreyScale_ImageHandler_t Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    return new_img;
 }

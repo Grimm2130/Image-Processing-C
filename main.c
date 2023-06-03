@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ImageHandler.h"
+#include "GnuPlotter.h"
 #include "errno.h"
+#include "Utils.h"
 
 
 char* grey_image = "TestImages/cameraman.bmp";
@@ -78,21 +80,98 @@ static void testConvert_RGB_to_Grey(){
     GreyScale_Image_Handler_Write_Image(grey, rgb_to_grey, NULL);
 }
 
+
+static void test_image_brighten(){
+
+    char* grey_lena_image = "TestImages/lena512.bmp";
+
+    GreyScale_ImageHandler_t grey = GreyScale_Image_Handler_Read_Image(grey_lena_image, NULL);
+
+    GreyScale_ImageHandler_t bright_grey = Greyscale_Brighten_Image_Saturation(grey, 125);
+
+    char* brightened_grey = "TestImages/lena512_bright.bmp";
+
+    GreyScale_Image_Handler_Write_Image(bright_grey, brightened_grey, NULL);
+}
+
+static void test_image_darken(){
+
+    char* grey_lena_image = "TestImages/lena512.bmp";
+
+    GreyScale_ImageHandler_t grey = GreyScale_Image_Handler_Read_Image(grey_lena_image, NULL);
+
+    GreyScale_ImageHandler_t dark_grey = Greyscale_Darken_Image_Saturation(grey, 70);
+
+    char* darkened_grey = "TestImages/lena512_dark.bmp";
+
+    GreyScale_Image_Handler_Write_Image(dark_grey, darkened_grey, NULL);
+}
+
+static void Test_Image_Rotation(){
+
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t img_right_flipped = Image_Handler_Rotate_Image_Right(img);
+
+    GreyScale_ImageHandler_t img_left_flipped = Image_Handler_Rotate_Image_Left(img);
+
+    GreyScale_Image_Handler_Write_Image(img_right_flipped, "Right_Flipped_Image.bmp", "TestImages");
+
+    GreyScale_Image_Handler_Write_Image(img_left_flipped, "Left_Flipped_Image.bmp", "TestImages");
+}
+
 int main(){
 
-    testGreyImage_R_W();
+    // testGreyImage_R_W();
 
-    testRGB_Image_R_W();
+    // testRGB_Image_R_W();
 
-    testBinary_Image_R_Grey_W_Binary();
+    // testBinary_Image_R_Grey_W_Binary();
 
-    testBinary_Image_R_RGB_W_Binary();
+    // testBinary_Image_R_RGB_W_Binary();
 
-    testBinary_Image_R_RGB_W_Binary_2();
+    // testBinary_Image_R_RGB_W_Binary_2();
 
-    testConvert_RGB_to_Grey();
+    // testConvert_RGB_to_Grey();
 
-    printf("Success!\n");
+    // test_image_brighten(); 
+
+    // test_image_darken();
+
+    Test_Image_Rotation();
+
+    // Gnu_plot_from_function("sin(x)", "x", "y", "y vs. x", NULL, 0);
+
+    
+
+
+    // float *hist = Image_Handler_Compute_Histogram(img);
+    // int validate = img.ImageHeight*img.ImageWidth;
+    // if(img.FromRGB)
+    //     validate *= 3;
+    
+    // printf("Pixel value \t: Frequency\n");
+    // for(int i = 0; i <= MAX_PIXEL_VAL; i++){
+    //     validate -= (int)hist[i];
+    //     printf("%-5d \t:    %f\n", i, hist[i]);
+    // }
+
+    // printf("%s!\n", !validate ? "Suceess" : "Failed");
+
+    // validate = (float) (img.ImageHeight*img.ImageWidth);
+
+    // NormalizeFloatArr(&hist, MAX_PIXEL_VAL+1, (float) validate);
+
+    // float* hist_eq = Image_Handler_Compute_Equalized_Histogram(hist, MAX_PIXEL_VAL+1);
+
+
+    // char* fileName = "Equlized_Histogram.txt";
+
+    // // char* fileName = "Histogram.txt";
+
+    // CopyFloatArrayToFile(hist_eq, MAX_PIXEL_VAL+1, fileName);
+
+    // Gnu_plot_from_file(fileName, "Pixel Values", "Pixel Frequency", "Histogram Data for Cameraman", NULL, 1);
 
     return 0;
 }
