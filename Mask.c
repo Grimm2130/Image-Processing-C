@@ -2,29 +2,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define     MASK_DATA_LAPLACIAN_ROWS             5
-#define     MASK_DATA_LAPLACIAN_COLS             5
 
-#define     MASK_DATA_EDGE_DETECT_ROWS           3
-#define     MASK_DATA_EDGE_DETECT_COLS           3
-
-#define     MAX_PIXEL_VAL               255
-#define     MIN_PIXEL_VAL               0
+/*==============================================================*/
+/*======================== Mask Filters ========================*/
+/*==============================================================*/
 
 
-const float Laplacian_Mask[MASK_DATA_LAPLACIAN_ROWS][MASK_DATA_LAPLACIAN_COLS] =
-                        {   {-1,-1,-1,-1,-1} ,
-                            {-1,-1,-1,-1,-1} ,
-                            {-1,-1,25.0,-1,-1} ,
-                            {-1,-1,-1,-1,-1} ,
-                            {-1,-1,-1,-1,-1}    };
-
-
-const float Edge_Detect_Mask_Gen[MASK_DATA_EDGE_DETECT_ROWS][MASK_DATA_EDGE_DETECT_COLS] = 
-                        {   {-1,-1,-1},
-                            {-1,-1,-1},
-                            {-1,-1,-1}
-                        };
 
 
 Mask_t Mask_Init(Mask_Types_t mask_type){
