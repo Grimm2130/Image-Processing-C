@@ -4,10 +4,28 @@
 #include <errno.h>
 #include "Utils.h"
 #include "ImageHandler.h"
+#include "Mask.h"
 
 
 
 const float Rgb_to_Bin_conv_floats[3] = {0.3, 0.59, 0.11};
+
+
+const float Box_Blurr_Kernel[3][3]= {   {1.0/9.0, 1.0/9.0, 1.0/9.0},
+                                        {1.0/9.0, 1.0/9.0, 1.0/9.0},
+                                        {1.0/9.0, 1.0/9.0, 1.0/9.0}    };
+
+const float Gaussian_Blurr_Kernel[3][3]= {  {1.0/16.0, 1.0/8.0, 1.0/16.0},
+                                            {1.0/8.0,  1.0/4.0,  1.0/8.0},
+                                            {1.0/16.0, 1.0/8.0, 1.0/16.0}  };
+
+const float Sharpen_Kernel[3][3]= { { 0,  -1,   0},
+                                    {-1,   5,  -1},
+                                    { 0,  -1,   0}  };
+
+const float Sepia_kernel[3][3] = {  {0.272, 0.534, 0.131},
+                                    {0.349, 0.686, 0.168},
+                                    {0.393, 0.769, 0.189}   };
 
 /*======================================================================================*/
 /*============================== Special Helper Functions ==============================*/
@@ -142,6 +160,320 @@ void GreyScale_Image_Handler_Write_Image(GreyScale_ImageHandler_t anImage, char*
 }
 
 
+/**
+ * @brief           Function to rotate an image Clockwise by 90 degrees
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_Right(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img = {0};
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // set buffer size
+    int height = img.ImageHeight,
+        width = img.ImageWidth;
+
+    // Copy back into the image buffer
+    
+    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
+
+    // Copy the buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[(height - 1 - i) + (j * width)] ;
+        }
+    }
+
+    return new_img;
+}
+
+/**
+ * @brief           Function to rotate an image counter-clockwise 90 degrees
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_Left(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // set buffer size
+    int height = img.ImageHeight,
+        width = img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
+
+    // Copy the buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[i + ((width-1-j) * width)];
+        }
+    }
+
+
+    return new_img;
+}
+
+/**
+ * @brief       Function to Rotate an image by 180 degrees
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    return new_img;
+}
+
+
+/**
+ * @brief           Function to Perform a negative transformation on an image
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t  Greyscale_Image_Handler_Negative_Transform(GreyScale_ImageHandler_t img){
+     GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Allocate a new buffer
+    int size = new_img.ImageHeight*new_img.ImageWidth;
+
+    if(new_img.FromRGB){
+        size*=3;
+    }
+    new_img.ImageBuffer = (uint8_t*) calloc(size, sizeof(uint8_t));
+
+    for(int i = 0; i < size; i++){
+        new_img.ImageBuffer[i] = MAX_PIXEL_VAL - img.ImageBuffer[i];
+    }
+
+    return new_img;
+}
+
+/**
+ * @brief       Function to perform a Box Blurring on an image 
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Box_Blur(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Define new image buffer
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc(width*height, sizeof(uint8_t));
+
+    // Copy the contents of the old buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * width)] = img.ImageBuffer[j + (i * width)];
+        }
+    }
+
+    // Perform the filter operation
+    for(int x = 1; x < (height-1); x++){
+        for(int y = 1; y < (width-1); y++){
+            // Accumulate the filter value for the kernel
+            float sum = 0;
+            for(int i = -1; i <= 1; i++){
+                for(int j = -1; j <= 1; j++){
+                    sum += (float)new_img.ImageBuffer[(y+j) + ((x+i)*width)] * Box_Blurr_Kernel[i+1][j+1];
+                }
+            }
+            new_img.ImageBuffer[y + (x*width)] = (uint8_t) sum;
+        }
+    }
+
+    return new_img;
+}
+
+
+/**
+ * @brief           Function to perform a Gaussian Blur on a Grey scale image
+ * 
+ * @param img       Greyscale image
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Gaussian_Blur(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Define new image buffer
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc(width*height, sizeof(uint8_t));
+
+    // Copy the contents of the old buffer
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            new_img.ImageBuffer[j + (i * width)] = img.ImageBuffer[j + (i * width)];
+        }
+    }
+
+    // Perform the filter operation
+    for(int x = 1; x < (height-1); x++){
+        for(int y = 1; y < (width-1); y++){
+            // Accumulate the filter value for the kernel
+            float sum = 0;
+            for(int i = -1; i <= 1; i++){
+                for(int j = -1; j <= 1; j++){
+                    sum += (float)new_img.ImageBuffer[(y+j) + ((x+i)*width)] * Gaussian_Blurr_Kernel[i+1][j+1];
+                }
+            }
+            new_img.ImageBuffer[y + (x*width)] = (uint8_t) sum;
+        }
+    }
+
+    return new_img;
+}
+
+
+
+/**
+ * @brief           Function to perform Laplacian convolution on an image
+ * 
+ * @param img 
+ * @return GreyScale_ImageHandler_t 
+ */
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Laplacian_Convolution(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Define new image buffer
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc(width*height, sizeof(uint8_t));
+    
+    // Copy the buffers values
+    memcpy(new_img.ImageBuffer, img.ImageBuffer, ( height * width) * sizeof(uint8_t));
+
+    // Get a laplacian mask
+    Mask_t laplacian = Mask_Init(Laplacian);
+
+    // Perform the convolution operation
+    Mask_Convolve(img.ImageBuffer, height, width, laplacian, new_img.ImageBuffer);
+
+    return new_img;
+}
+
+
+
 /*======================================================================================*/
 /*================================= RGB Image Functions ================================*/
 /*======================================================================================*/
@@ -225,6 +557,160 @@ void RGB_Image_Handler_Write_Image(RGB_ImageHandler_t anImage, char* ImageName, 
     fclose(fp);
 }
 
+
+/**
+ * @brief               Function to perform a Box Blurr on an RGB image 
+ * 
+ * @param img 
+ * @return RGB_ImageHandler_t 
+ */
+RGB_ImageHandler_t RGB_Image_Handler_Box_Blur(RGB_ImageHandler_t img){
+    RGB_ImageHandler_t new_img = {0};
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.ImageWidth = img.ImageWidth;
+    new_img.ImageHeight = img.ImageHeight;
+
+    // Copy the image header
+    memcpy(new_img.ImageHeader, img.ImageHeader, IMAGE_HEADER_SIZE * sizeof(uint8_t));
+
+    // Copy color table if available
+    if(new_img.BitDepth <= 8)
+        memcpy(new_img.ColorTable, img.ColorTable, IMAGE_COLOR_TABLE_SIZE * sizeof(uint8_t));
+
+    // Copy the buffers
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth,
+        size = height * width;
+
+    new_img.ImageBuffer = Set_RGB_Buffer_Mem(size);
+
+    for(int channel = 0; channel < RGB_CHANNEL_SIZE; channel++){
+        memcpy(new_img.ImageBuffer[channel], img.ImageBuffer[channel], size * sizeof(uint8_t));
+    }
+
+    // perform the Gaussian Blurr on all the channels
+    for(int x = 1; x < height-1; x++){
+        for(int y = 1; y < width-1; y++){
+
+            float   red = 0,
+                    green = 0,
+                    blue = 0 ;
+            for(int i = -1; i <= 1; i++){
+                for(int j = -1; j <= 1; j++){
+                    red += (float)new_img.ImageBuffer[RED][(y+j) + ((x+i)*width)] * Box_Blurr_Kernel[i+1][j+1];
+                    green += (float)new_img.ImageBuffer[GREEN][(y+j) + ((x+i)*width)] * Box_Blurr_Kernel[i+1][j+1];
+                    blue += (float)new_img.ImageBuffer[BLUE][(y+j) + ((x+i)*width)] * Box_Blurr_Kernel[i+1][j+1];
+                }
+            }
+
+            new_img.ImageBuffer[RED][y + (x * width)] = red;
+            new_img.ImageBuffer[GREEN][y + (x * width)] = green;
+            new_img.ImageBuffer[BLUE][y + (x * width)] = blue;
+        }
+    }
+
+    return new_img;
+}
+RGB_ImageHandler_t RGB_Image_Handler_Gaussian_Blur(RGB_ImageHandler_t img){
+    RGB_ImageHandler_t new_img = {0};
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.ImageWidth = img.ImageWidth;
+    new_img.ImageHeight = img.ImageHeight;
+
+    // Copy the image header
+    memcpy(new_img.ImageHeader, img.ImageHeader, IMAGE_HEADER_SIZE * sizeof(uint8_t));
+
+    // Copy color table if available
+    if(new_img.BitDepth <= 8)
+        memcpy(new_img.ColorTable, img.ColorTable, IMAGE_COLOR_TABLE_SIZE * sizeof(uint8_t));
+
+    // Copy the buffers
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth,
+        size = height * width;
+
+    new_img.ImageBuffer = Set_RGB_Buffer_Mem(size);
+
+    for(int channel = 0; channel < RGB_CHANNEL_SIZE; channel++){
+        memcpy(new_img.ImageBuffer[channel], img.ImageBuffer[channel], size * sizeof(uint8_t));
+    }
+
+    // perform the Gaussian Blurr on all the channels
+    for(int x = 1; x < height-1; x++){
+        for(int y = 1; y < width-1; y++){
+
+            float   red = 0,
+                    green = 0,
+                    blue = 0 ;
+            for(int i = -1; i <= 1; i++){
+                for(int j = -1; j <= 1; j++){
+                    red += (float)new_img.ImageBuffer[RED][(y+j) + ((x+i)*width)] * Gaussian_Blurr_Kernel[i+1][j+1];
+                    green += (float)new_img.ImageBuffer[GREEN][(y+j) + ((x+i)*width)] * Gaussian_Blurr_Kernel[i+1][j+1];
+                    blue += (float)new_img.ImageBuffer[BLUE][(y+j) + ((x+i)*width)] * Gaussian_Blurr_Kernel[i+1][j+1];
+                }
+            }
+
+            new_img.ImageBuffer[RED][y + (x * width)] = red;
+            new_img.ImageBuffer[GREEN][y + (x * width)] = green;
+            new_img.ImageBuffer[BLUE][y + (x * width)] = blue;
+        }
+    }
+
+    return new_img;
+}
+
+
+/**
+ * @brief           Function to Apply a sepia filter on an RGB image
+ * 
+ * @param img 
+ * @return RGB_ImageHandler_t 
+ */
+RGB_ImageHandler_t RGB_Image_Handler_Sepia_Filter(RGB_ImageHandler_t img){
+    RGB_ImageHandler_t new_img = {0};
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.ImageWidth = img.ImageWidth;
+    new_img.ImageHeight = img.ImageHeight;
+
+    // Copy the image header
+    memcpy(new_img.ImageHeader, img.ImageHeader, IMAGE_HEADER_SIZE * sizeof(uint8_t));
+
+    // Copy color table if available
+    if(new_img.BitDepth <= 8)
+        memcpy(new_img.ColorTable, img.ColorTable, IMAGE_COLOR_TABLE_SIZE * sizeof(uint8_t));
+
+    // Copy the channel buffers
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth,
+        size = height * width;
+
+    new_img.ImageBuffer = Set_RGB_Buffer_Mem(size);
+
+    for(int channel = 0; channel < RGB_CHANNEL_SIZE; channel++){
+        memcpy(new_img.ImageBuffer[channel], img.ImageBuffer[channel], size * sizeof(uint8_t));
+    }
+
+    // Apply a sepia filter on
+    int red = 0, green = 0, blue = 0;
+    for(int i = 0; i < size; i++){
+        red = (new_img.ImageBuffer[RED][i] * Sepia_kernel[0][0]) + (new_img.ImageBuffer[GREEN][i] * Sepia_kernel[0][1]) + (new_img.ImageBuffer[BLUE][i] * Sepia_kernel[0][2]);
+        green = (new_img.ImageBuffer[RED][i] * Sepia_kernel[1][0]) + (new_img.ImageBuffer[GREEN][i] * Sepia_kernel[1][1]) + (new_img.ImageBuffer[BLUE][i] * Sepia_kernel[1][2]);
+        blue = (new_img.ImageBuffer[RED][i] * Sepia_kernel[2][0]) + (new_img.ImageBuffer[GREEN][i] * Sepia_kernel[2][1]) + (new_img.ImageBuffer[BLUE][i] * Sepia_kernel[2][2]);
+    
+        red = red > MAX_PIXEL_VAL ? MAX_PIXEL_VAL : red;
+        green = green > MAX_PIXEL_VAL ? MAX_PIXEL_VAL : green;
+        blue = blue > MAX_PIXEL_VAL ? MAX_PIXEL_VAL : blue;
+
+        new_img.ImageBuffer[RED][i] = red;
+        new_img.ImageBuffer[GREEN][i] = green;
+        new_img.ImageBuffer[BLUE][i] = blue;
+    }
+
+    return new_img;
+}
 
 /*======================================================================================*/
 /*=============================== Binary Image Functions ===============================*/
@@ -467,6 +953,8 @@ Binary_ImageHandler_t Image_Convt_RGB_to_Binary(RGB_ImageHandler_t rgb_image, in
 }
 
 
+
+
 /*======================================================================================*/
 /*================================= Arithmetic Functions ===============================*/
 /*======================================================================================*/
@@ -553,6 +1041,9 @@ GreyScale_ImageHandler_t Greyscale_Darken_Image_Saturation(GreyScale_ImageHandle
 
     return dark_image;
 }
+
+
+
 
 
 /*======================================================================================*/
@@ -654,103 +1145,3 @@ GreyScale_ImageHandler_t  Image_Handler_Equalize_Image_Pixels(GreyScale_ImageHan
 /*======================= Image Rotation Operation Functions ==========================*/
 /*======================================================================================*/
 
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Right(GreyScale_ImageHandler_t img){
-    GreyScale_ImageHandler_t new_img = {0};
-
-    new_img.BitDepth = img.BitDepth;
-    new_img.FromRGB = img.FromRGB;
-
-    // Flip the image height and width values
-    new_img.ImageHeight = img.ImageWidth;
-    new_img.ImageWidth = img.ImageHeight;
-
-     // Copy header
-    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
-        new_img.ImageHeader[i] = img.ImageHeader[i];
-    }
-
-    // Copy Color table
-    if(new_img.BitDepth <= 8){
-        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
-            new_img.ColorTable[i] = img.ColorTable[i];
-        }
-    }
-
-    // set buffer size
-    int height = img.ImageHeight,
-        width = img.ImageWidth;
-    
-    
-
-
-    // Copy back into the image buffer
-    
-    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
-
-    //  for(int i = 0; i < height; i++){
-    //     for(int j = 0; j < width; j++){
-    //         new_img.ImageBuffer[j + (i * width)] = copy_buff[i][j];
-    //     }
-    // }
-
-    // Copy the buffer
-    for(int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
-            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[(height - 1 - i) + (j * width)] ;
-        }
-    }
-
-    return new_img;
-}
-
-/**
- * @brief           Function to rotate an image left
- * 
- * @param img 
- * @return GreyScale_ImageHandler_t 
- */
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Left(GreyScale_ImageHandler_t img){
-    GreyScale_ImageHandler_t new_img;
-
-    new_img.BitDepth = img.BitDepth;
-    new_img.FromRGB = img.FromRGB;
-
-    // Flip the image height and width values
-    new_img.ImageHeight = img.ImageWidth;
-    new_img.ImageWidth = img.ImageHeight;
-
-     // Copy header
-    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
-        new_img.ImageHeader[i] = img.ImageHeader[i];
-    }
-
-    // Copy Color table
-    if(new_img.BitDepth <= 8){
-        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
-            new_img.ColorTable[i] = img.ColorTable[i];
-        }
-    }
-
-    // set buffer size
-    int height = img.ImageHeight,
-        width = img.ImageWidth;
-    
-    new_img.ImageBuffer = (uint8_t*) calloc((height * width), sizeof(uint8_t));
-
-    // Copy the buffer
-    for(int i = 0; i < height; i++){
-        for(int j = 0; j < width; j++){
-            new_img.ImageBuffer[j + (i * height)] = img.ImageBuffer[i + ((width-1-j) * width)];
-        }
-    }
-
-
-    return new_img;
-}
-
-
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img){
-    GreyScale_ImageHandler_t new_img;
-
-    return new_img;
-}

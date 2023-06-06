@@ -3,7 +3,8 @@ CFLAG=-g
 TARGET:main
 OBJS=ImageHandler.o			\
 	GnuPlotter.o			\
-	Utils.o
+	Utils.o					\
+	Mask.o
 
 main:main.o ${OBJS}
 	${CC} ${CFLAG} main.o ${OBJS} -o main
@@ -19,6 +20,9 @@ GnuPlotter.o:GnuPlotter.c
 
 Utils.o:Utils.c
 	${CC} ${CFLAG} -c Utils.c -o Utils.o
+
+Mask.o:Mask.c
+	${CC} ${CFLAG} -c Mask.c -o Mask.o
 
 clean:
 	rm -rf *.o main *.txt

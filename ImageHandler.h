@@ -33,6 +33,21 @@ typedef GreyScale_ImageHandler_t* GreyScale_ImageHandler_Ptr;
 GreyScale_ImageHandler_t GreyScale_Image_Handler_Read_Image(char* ImageName, char* ImagePath);
 void GreyScale_Image_Handler_Write_Image(GreyScale_ImageHandler_t anImage, char* ImageName, char* ImagePath);
 
+// Rotating Images
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_Right(GreyScale_ImageHandler_t img);
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_Left(GreyScale_ImageHandler_t img);
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img);
+
+// Negative Transformation
+GreyScale_ImageHandler_t  Greyscale_Image_Handler_Negative_Transform(GreyScale_ImageHandler_t img);
+
+// Box blur filter function
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Box_Blur(GreyScale_ImageHandler_t img);
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Gaussian_Blur(GreyScale_ImageHandler_t img);
+
+// Convolution based Filters
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Laplacian_Convolution(GreyScale_ImageHandler_t img);
+
 /*===============================================*/
 /*===============================================*/
 
@@ -62,6 +77,13 @@ typedef RGB_ImageHandler_t* RGB_ImageHandler_Ptr;
 // R/W methods
 RGB_ImageHandler_t RGB_Image_Handler_Read_Image(char* ImageName, char* ImagePath);
 void RGB_Image_Handler_Write_Image(RGB_ImageHandler_t anImage, char* ImageName, char* ImagePath);
+
+// Blurring Functions
+RGB_ImageHandler_t RGB_Image_Handler_Box_Blur(RGB_ImageHandler_t img);
+RGB_ImageHandler_t RGB_Image_Handler_Gaussian_Blur(RGB_ImageHandler_t img);
+
+// Special filters
+RGB_ImageHandler_t RGB_Image_Handler_Sepia_Filter(RGB_ImageHandler_t img);
 
 /*===============================================*/
 /*===============================================*/
@@ -116,13 +138,9 @@ float* Image_Handler_Compute_Equalized_Histogram(float* hist, int size);
 GreyScale_ImageHandler_t Image_Handler_Equalize_Image_Pixels(GreyScale_ImageHandler_Ptr img_p);
 
 
-// Rotating Images
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Right(GreyScale_ImageHandler_t img);
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_Left(GreyScale_ImageHandler_t img);
-GreyScale_ImageHandler_t Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img);
 
 
-// NegativeTransformation
-GreyScale_ImageHandler_t  Image_Handler_Negative_Transform(GreyScale_ImageHandler_t img);
+
+
 
 #endif      //IMAGE_HANDLER_H

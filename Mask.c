@@ -1,0 +1,70 @@
+#include "Mask.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+#define     MASK_DATA_LAPLACIAN_ROWS             5
+#define     MASK_DATA_LAPLACIAN_COLS             5
+
+#define     MAX_PIXEL_VAL               255
+#define     MIN_PIXEL_VAL               0
+
+
+const float Laplacian_Mask[MASK_DATA_LAPLACIAN_ROWS][MASK_DATA_LAPLACIAN_COLS] =
+                        {   {-1,-1,-1,-1,-1} ,
+                            {-1,-1,-1,-1,-1} ,
+                            {-1,-1,25.0,-1,-1} ,
+                            {-1,-1,-1,-1,-1} ,
+                            {-1,-1,-1,-1,-1}    };
+
+
+Mask_t Mask_Init(Mask_Types_t mask_type){
+    Mask_t mask;
+    switch(mask_type){
+        case Laplacian:
+            // Set numbuer of rows
+            mask.Rows = MASK_DATA_LAPLACIAN_ROWS;
+            mask.Cols = MASK_DATA_LAPLACIAN_COLS;
+            mask.Data = (float*) calloc((MASK_DATA_LAPLACIAN_COLS * MASK_DATA_LAPLACIAN_ROWS), sizeof(float));
+            for(int i = 0; i < MASK_DATA_LAPLACIAN_ROWS; i++){
+                for (int j = 0; j < MASK_DATA_LAPLACIAN_COLS; j++){
+                    mask.Data[j + (i * MASK_DATA_LAPLACIAN_COLS)] = Laplacian_Mask[i][j];
+                }
+            }
+            break;
+    }
+    return mask;
+}
+
+
+
+void Mask_Convolve(uint8_t* in_buffer, int rows, int cols, Mask_t mask, uint8_t* out_buffer){
+    int x_idx = 0,
+        y_idx = 0;
+    float sum = 0;
+    int temp = 0;
+    // Loop over the image values
+    for (int x = 0; x < rows; x++){
+        for (int y = 0; y < cols; y++){
+            sum = 0;
+            // Loop over the mask
+            for (int i = 0; i < mask.Rows; i++){
+                for (int j = 0; j < mask.Cols; j++){
+                    x_idx = x - i;
+                    y_idx = y - j;
+                    // Check if at valid offset
+                    if( ( x_idx >= 0) && ( y_idx >= 0) ){
+                        sum += mask.Data[j + (i * mask.Cols)] * (float) in_buffer[y_idx + (x_idx * cols)];
+                    }
+                }
+            }
+            // Set the value in the output buffer
+            temp = (int) sum;
+            if(temp > MAX_PIXEL_VAL)
+                temp = MAX_PIXEL_VAL;
+            if(temp < MIN_PIXEL_VAL)
+                temp = MIN_PIXEL_VAL;
+                
+            out_buffer[y + (x * cols)] = (uint8_t) temp;
+        }
+    }
+}

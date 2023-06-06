@@ -111,14 +111,73 @@ static void Test_Image_Rotation(){
 
     GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
 
-    GreyScale_ImageHandler_t img_right_flipped = Image_Handler_Rotate_Image_Right(img);
+    GreyScale_ImageHandler_t img_right_flipped = Greyscale_Image_Handler_Rotate_Image_Right(img);
 
-    GreyScale_ImageHandler_t img_left_flipped = Image_Handler_Rotate_Image_Left(img);
+    GreyScale_ImageHandler_t img_left_flipped = Greyscale_Image_Handler_Rotate_Image_Left(img);
 
     GreyScale_Image_Handler_Write_Image(img_right_flipped, "Right_Flipped_Image.bmp", "TestImages");
 
     GreyScale_Image_Handler_Write_Image(img_left_flipped, "Left_Flipped_Image.bmp", "TestImages");
 }
+
+static void Test_Image_Negation(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t img_neg = Greyscale_Image_Handler_Negative_Transform(img);
+
+    GreyScale_Image_Handler_Write_Image(img_neg, "Negative_Image.bmp", "TestImages");
+}
+
+
+static void Test_Image_Box_Blur(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t blurred = Greyscale_Image_Handler_Box_Blur(img);
+
+    GreyScale_Image_Handler_Write_Image(blurred, "Box_Blurred_Image.bmp", "TestImages");
+}
+
+
+static void Test_Image_Gaussian_Blur(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t blurred = Greyscale_Image_Handler_Gaussian_Blur(img);
+
+    GreyScale_Image_Handler_Write_Image(blurred, "Gaussian_Blurred_Image.bmp", "TestImages");
+}
+
+static void Test_Image_Laplacian_Blur(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t lap = Greyscale_Image_Handler_Laplacian_Convolution(img);
+
+    GreyScale_Image_Handler_Write_Image(lap, "Laplacian_Blurred_Image.bmp", "TestImages");
+}
+
+static void Test_Image_Box_Blur_RGB(){
+    RGB_ImageHandler_t img = RGB_Image_Handler_Read_Image(rgb_image, NULL);
+
+    RGB_ImageHandler_t blurred = RGB_Image_Handler_Box_Blur(img);
+
+    RGB_Image_Handler_Write_Image(blurred, "Box_Blurred_Image.bmp", "TestImages");
+}
+
+static void Test_Image_Gaussian_Blur_RGB(){
+    RGB_ImageHandler_t img = RGB_Image_Handler_Read_Image(rgb_image, NULL);
+
+    RGB_ImageHandler_t blurred = RGB_Image_Handler_Gaussian_Blur(img);
+
+    RGB_Image_Handler_Write_Image(blurred, "Gausian_Blurred_Image.bmp", "TestImages");
+}
+
+static void Test_Image_Sepia_Filter(){
+    RGB_ImageHandler_t img = RGB_Image_Handler_Read_Image(rgb_image, NULL);
+
+    RGB_ImageHandler_t sepiad = RGB_Image_Handler_Sepia_Filter(img);
+
+    RGB_Image_Handler_Write_Image(sepiad, "Sepiad_Image.bmp", "TestImages");
+}
+
 
 int main(){
 
@@ -138,40 +197,22 @@ int main(){
 
     // test_image_darken();
 
-    Test_Image_Rotation();
+    // Test_Image_Rotation();
 
-    // Gnu_plot_from_function("sin(x)", "x", "y", "y vs. x", NULL, 0);
+    // Test_Image_Negation();
 
+    // Test_Image_Box_Blur();
+
+    // Test_Image_Gaussian_Blur();
+
+    // Test_Image_Box_Blur_RGB();
+
+    // Test_Image_Gaussian_Blur_RGB();
+
+    // Test_Image_Sepia_Filter();
     
+    Test_Image_Laplacian_Blur();
 
-
-    // float *hist = Image_Handler_Compute_Histogram(img);
-    // int validate = img.ImageHeight*img.ImageWidth;
-    // if(img.FromRGB)
-    //     validate *= 3;
-    
-    // printf("Pixel value \t: Frequency\n");
-    // for(int i = 0; i <= MAX_PIXEL_VAL; i++){
-    //     validate -= (int)hist[i];
-    //     printf("%-5d \t:    %f\n", i, hist[i]);
-    // }
-
-    // printf("%s!\n", !validate ? "Suceess" : "Failed");
-
-    // validate = (float) (img.ImageHeight*img.ImageWidth);
-
-    // NormalizeFloatArr(&hist, MAX_PIXEL_VAL+1, (float) validate);
-
-    // float* hist_eq = Image_Handler_Compute_Equalized_Histogram(hist, MAX_PIXEL_VAL+1);
-
-
-    // char* fileName = "Equlized_Histogram.txt";
-
-    // // char* fileName = "Histogram.txt";
-
-    // CopyFloatArrayToFile(hist_eq, MAX_PIXEL_VAL+1, fileName);
-
-    // Gnu_plot_from_file(fileName, "Pixel Values", "Pixel Frequency", "Histogram Data for Cameraman", NULL, 1);
 
     return 0;
 }
