@@ -1,4 +1,4 @@
-#include "Mask.h"
+#include "../headers/Mask.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -7,7 +7,39 @@
 /*======================== Mask Filters ========================*/
 /*==============================================================*/
 
+const float Rgb_to_Bin_conv_floats[3] = {0.3, 0.59, 0.11};
 
+
+const float Box_Blurr_Kernel[3][3]= {   {1.0/9.0, 1.0/9.0, 1.0/9.0},
+                                        {1.0/9.0, 1.0/9.0, 1.0/9.0},
+                                        {1.0/9.0, 1.0/9.0, 1.0/9.0}    };
+
+const float Gaussian_Blurr_Kernel[3][3]= {  {1.0/16.0, 1.0/8.0, 1.0/16.0},
+                                            {1.0/8.0,  1.0/4.0,  1.0/8.0},
+                                            {1.0/16.0, 1.0/8.0, 1.0/16.0}  };
+
+const float Sharpen_Kernel[3][3]= { { 0,  -1,   0},
+                                    {-1,   5,  -1},
+                                    { 0,  -1,   0}  };
+
+const float Sepia_kernel[3][3] = {  {0.272, 0.534, 0.131},
+                                    {0.349, 0.686, 0.168},
+                                    {0.393, 0.769, 0.189}   };
+
+
+const float Laplacian_Mask[MASK_DATA_LAPLACIAN_ROWS][MASK_DATA_LAPLACIAN_COLS] =
+                        {   {-1,-1,-1,-1,-1} ,
+                            {-1,-1,-1,-1,-1} ,
+                            {-1,-1,25.0,-1,-1} ,
+                            {-1,-1,-1,-1,-1} ,
+                            {-1,-1,-1,-1,-1}    };
+
+
+const float Edge_Detect_Mask_Gen[MASK_DATA_EDGE_DETECT_ROWS][MASK_DATA_EDGE_DETECT_COLS] =
+                        {   {-1,-1,-1},
+                            {-1,-1,-1},
+                            {-1,-1,-1}
+                        };
 
 
 Mask_t Mask_Init(Mask_Types_t mask_type){

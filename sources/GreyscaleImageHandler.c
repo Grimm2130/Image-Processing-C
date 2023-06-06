@@ -1,4 +1,4 @@
-#include "GreyscaleImageHandler.h"
+#include "../headers/GreyscaleImageHandler.h"
 
 /**
  * @brief           Image Handler, Read image function

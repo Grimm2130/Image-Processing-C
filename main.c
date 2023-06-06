@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ImageHandler.h"
-#include "GnuPlotter.h"
-#include "errno.h"
-#include "Utils.h"
-#include "Mask.h"
+#include "headers/GnuPlotter.h"
+// #include "errno.h
+#include "headers/Utils.h"
+#include "headers/Mask.h"
+#include "headers/RGBImageHandler.h"
+#include "headers/GreyscaleImageHandler.h"
+#include "headers/BinaryImage_Handler.h"
 
 
 char* grey_image = "TestImages/cameraman.bmp";
@@ -76,7 +78,7 @@ static void testBinary_Image_R_Grey_W_Binary(){
 static void testConvert_RGB_to_Grey(){
     RGB_ImageHandler_t rgb = RGB_Image_Handler_Read_Image(rgb_image, NULL);
 
-    GreyScale_ImageHandler_t grey = Image_Convt_RGB_to_GreyScale(rgb);
+    GreyScale_ImageHandler_t grey = Greyscale_Image_Handler_Convt_RGB_to_GreyScale(rgb);
 
     GreyScale_Image_Handler_Write_Image(grey, rgb_to_grey, NULL);
 }

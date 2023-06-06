@@ -1,4 +1,4 @@
-#include "BinaryImage_Handler.h"
+#include "../headers/BinaryImage_Handler.h"
 
 
 Binary_ImageHandler_t Binary_Image_Handler_Read_Image_From_Greyscale(char* ImageName, char* ImagePath, int thres){

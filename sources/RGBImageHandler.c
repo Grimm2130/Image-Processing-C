@@ -1,4 +1,4 @@
-#include "RGBImageHandler..h"
+#include "../headers/RGBImageHandler.h"
 
 
 RGB_ImageHandler_t RGB_Image_Handler_Read_Image(char* ImageName, char* ImagePath){

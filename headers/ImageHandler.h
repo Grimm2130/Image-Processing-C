@@ -8,8 +8,7 @@
 #define HEADER_BIT_DEPTH_OFFSET     28
 #define RGB_CHANNEL_SIZE            3
 
-#define MAX_PIXEL_VAL               255
-#define MIN_PIXEL_VAL               10
+
 
 #include <stdint.h>
 #include <stdio.h>
@@ -17,6 +16,7 @@
 #include <errno.h>
 #include <string.h>
 #include "Mask.h"
+#include "Utils.h"
 
 /*===============================================================*/
 /*===================== Channel Enumeration =====================*/

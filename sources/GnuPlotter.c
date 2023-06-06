@@ -1,4 +1,4 @@
-#include "GnuPlotter.h"
+#include "../headers/GnuPlotter.h"
 
 void Gnu_plot_from_file(char* fileName, char* xLabel, char* yLabel, char* title, char* output, uint8_t include_lines){
     FILE* gnu = popen("gnuplot -persistent", "w");
