@@ -5,6 +5,7 @@
 #include "GnuPlotter.h"
 #include "errno.h"
 #include "Utils.h"
+#include "Mask.h"
 
 
 char* grey_image = "TestImages/cameraman.bmp";
@@ -154,6 +155,23 @@ static void Test_Image_Laplacian_Blur(){
     GreyScale_Image_Handler_Write_Image(lap, "Laplacian_Blurred_Image.bmp", "TestImages");
 }
 
+static void Test_Image_Edge_detect(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t lap = Greyscale_Image_Handler_Edge_Detect_Single(img, Edge_Vertical);
+
+    GreyScale_Image_Handler_Write_Image(lap, "Vertical_Edge_Detection_Image.bmp", "TestImages");
+}
+
+static void Test_Image_Edge_detect_complete(){
+    GreyScale_ImageHandler_t img = GreyScale_Image_Handler_Read_Image(grey_image, NULL);
+
+    GreyScale_ImageHandler_t lap = Greyscale_Image_Handler_Edge_Detect_Complete(img);
+
+    GreyScale_Image_Handler_Write_Image(lap, "Hor_Vert_Edge_Detection_Image.bmp", "TestImages");
+}
+
+
 static void Test_Image_Box_Blur_RGB(){
     RGB_ImageHandler_t img = RGB_Image_Handler_Read_Image(rgb_image, NULL);
 
@@ -210,8 +228,12 @@ int main(){
     // Test_Image_Gaussian_Blur_RGB();
 
     // Test_Image_Sepia_Filter();
-    
-    Test_Image_Laplacian_Blur();
+
+    // Test_Image_Laplacian_Blur();
+
+    Test_Image_Edge_detect();
+
+    Test_Image_Edge_detect_complete();
 
 
     return 0;

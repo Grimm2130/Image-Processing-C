@@ -55,6 +55,19 @@ static uint8_t** Set_RGB_Buffer_Mem(const int size){
     return ret;
 }
 
+
+static uint8_t* Init_Buffer(const int rows, const int cols){
+    uint8_t* buff = calloc(rows * cols, sizeof(u_int8_t));
+    return buff;
+}
+
+static void Buffer_And(uint8_t* mask, uint8_t* target, const int rows, const int cols){
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < cols; j++){
+            target[j + (i * cols)] |= mask[j + (i * cols)];
+        }
+    }
+}
 /*======================================================================================*/
 /*=============================== GreyScale Image Functions ===============================*/
 /*======================================================================================*/
@@ -259,7 +272,7 @@ GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_Left(GreyScale_Ima
  */
 GreyScale_ImageHandler_t Greyscale_Image_Handler_Rotate_Image_180(GreyScale_ImageHandler_t img){
     GreyScale_ImageHandler_t new_img;
-
+    // {# TODO: add functionality }
     return new_img;
 }
 
@@ -472,7 +485,97 @@ GreyScale_ImageHandler_t Greyscale_Image_Handler_Laplacian_Convolution(GreyScale
     return new_img;
 }
 
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Edge_Detect_Single(GreyScale_ImageHandler_t img, Mask_Types_t edge_flow){
+    GreyScale_ImageHandler_t new_img;
 
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Define new image buffer
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc(width*height, sizeof(uint8_t));
+    
+    memcpy(new_img.ImageBuffer, img.ImageBuffer, height*width);
+
+    Mask_t mask = Mask_Init(Edge_Vertical);
+
+    Mask_Convolve(img.ImageBuffer, height, width, mask, new_img.ImageBuffer);
+
+    return new_img;
+}
+
+
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Edge_Detect_Complete(GreyScale_ImageHandler_t img){
+    GreyScale_ImageHandler_t new_img;
+
+    new_img.BitDepth = img.BitDepth;
+    new_img.FromRGB = img.FromRGB;
+
+    // Flip the image height and width values
+    new_img.ImageHeight = img.ImageWidth;
+    new_img.ImageWidth = img.ImageHeight;
+
+     // Copy header
+    for(int i = 0; i < IMAGE_HEADER_SIZE; i++){
+        new_img.ImageHeader[i] = img.ImageHeader[i];
+    }
+
+    // Copy Color table
+    if(new_img.BitDepth <= 8){
+        for(int i = 0; i < IMAGE_COLOR_TABLE_SIZE; i++){
+            new_img.ColorTable[i] = img.ColorTable[i];
+        }
+    }
+
+    // Define new image buffer
+    int height = new_img.ImageHeight,
+        width = new_img.ImageWidth;
+    
+    new_img.ImageBuffer = (uint8_t*) calloc(width*height, sizeof(uint8_t));
+    
+    // detect vertical
+    uint8_t     *vertical = Init_Buffer(height, width),
+                *horizontal = Init_Buffer(height, width),
+                *left_diag = Init_Buffer(height, width),
+                *right_diag = Init_Buffer(height, width);
+
+
+    Mask_Convolve(img.ImageBuffer, height, width, Mask_Init(Edge_Vertical), vertical);
+    Mask_Convolve(img.ImageBuffer, height, width, Mask_Init(Edge_Horizontal), horizontal);
+    Mask_Convolve(img.ImageBuffer, height, width, Mask_Init(Edge_Left_Diag), left_diag);
+    Mask_Convolve(img.ImageBuffer, height, width, Mask_Init(Edge_Right_Diag), right_diag);
+
+    // And all Diagonals
+    Buffer_And(vertical, new_img.ImageBuffer, height, width);
+    Buffer_And(horizontal, new_img.ImageBuffer, height, width);
+    Buffer_And(left_diag, new_img.ImageBuffer, height, width);
+    Buffer_And(right_diag, new_img.ImageBuffer, height, width);
+
+    free(vertical);
+    free(horizontal);
+    free(left_diag);
+    free(right_diag);
+
+    return new_img;
+}
 
 /*======================================================================================*/
 /*================================= RGB Image Functions ================================*/

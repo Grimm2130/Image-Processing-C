@@ -12,7 +12,7 @@
 #define MIN_PIXEL_VAL               10
 
 #include <stdint.h>
-
+#include "Mask.h"
 
 /*===============================================*/
 /**             GreyScale Image Handlers           **/
@@ -47,6 +47,8 @@ GreyScale_ImageHandler_t Greyscale_Image_Handler_Gaussian_Blur(GreyScale_ImageHa
 
 // Convolution based Filters
 GreyScale_ImageHandler_t Greyscale_Image_Handler_Laplacian_Convolution(GreyScale_ImageHandler_t img);
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Edge_Detect_Single(GreyScale_ImageHandler_t img, Mask_Types_t edge_flow);
+GreyScale_ImageHandler_t Greyscale_Image_Handler_Edge_Detect_Complete(GreyScale_ImageHandler_t img);
 
 /*===============================================*/
 /*===============================================*/

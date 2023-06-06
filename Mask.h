@@ -7,7 +7,11 @@
 
 
 typedef enum {
-    Laplacian
+    Laplacian,
+    Edge_Vertical,
+    Edge_Horizontal,
+    Edge_Left_Diag,
+    Edge_Right_Diag
     /* {#TODO} other mask types */
 } Mask_Types_t;
 
